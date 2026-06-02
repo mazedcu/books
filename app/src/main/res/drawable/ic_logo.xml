@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Background circle -->
+    <path
+        android:pathData="M60,60m-55,0a55,55 0,1 1,110 0a55,55 0,1 1,-110 0"
+        android:fillColor="#1B6CA8" />
+
+    <!-- Graduation cap top -->
+    <path
+        android:pathData="M60,25L95,42L60,59L25,42Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Graduation cap brim -->
+    <path
+        android:pathData="M25,42L25,55L60,65L60,59Z"
+        android:fillColor="#F4A932" />
+    <path
+        android:pathData="M95,42L95,55L60,65L60,59Z"
+        android:fillColor="#F4A932" />
+
+    <!-- Book shape bottom -->
+    <path
+        android:pathData="M38,68L38,90C38,90 59,85 60,85C61,85 82,90 82,90L82,68C82,68 61,72 60,72C59,72 38,68 38,68Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.9" />
+
+    <!-- Book spine line -->
+    <path
+        android:pathData="M60,72L60,85"
+        android:strokeColor="#1B6CA8"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Tassel cord -->
+    <path
+        android:pathData="M95,42L95,62"
+        android:strokeColor="#F4A932"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M95,62C95,62 91,68 95,72C99,76 95,80 95,80"
+        android:strokeColor="#F4A932"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent" />
+
+</vector>

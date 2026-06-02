@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Public user profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["name", "email"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "A confirmed purchase giving access to a book",
+      "type": "object",
+      "properties": {
+        "bookId": { "type": "string" },
+        "orderId": { "type": "string" }
+      },
+      "required": ["bookId", "orderId"]
+    },
+    "Book": {
+      "title": "Book",
+      "description": "Public book details",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "previewContent": { "type": "string" }
+      },
+      "required": ["title", "description", "price", "coverUrl", "previewContent"]
+    },
+    "BookContent": {
+      "title": "Book Content",
+      "description": "Private book content containing the download URL",
+      "type": "object",
+      "properties": {
+        "downloadUrl": { "type": "string" }
+      },
+      "required": ["downloadUrl"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Order for a book",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bookId": { "type": "string" },
+        "bkashReference": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "number" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" }
+      },
+      "required": ["userId", "bookId", "bkashReference", "status", "createdAt", "customerName", "customerEmail"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profiles"
+    },
+    "/users/{userId}/purchases/{bookId}": {
+      "schema": { "$ref": "Purchase" },
+      "description": "Confirmed purchases for a user"
+    },
+    "/books/{bookId}": {
+      "schema": { "$ref": "Book" },
+      "description": "Public available books"
+    },
+    "/books/{bookId}/content/{docId}": {
+      "schema": { "$ref": "BookContent" },
+      "description": "Private content containing download links"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "Order" },
+      "description": "Book purchase orders via bKash"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && (request.auth.token.email == 'Mazedcu@gmail.com' || request.auth.token.email == 'mazedcu@gmail.com' || request.auth.token.email == 'mazedbooks@gmail.com'); }
+    function isValidId(id) { return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email']) && data.keys().size() == 2 &&
+             data.name is string && data.name.size() >= 0 && data.name.size() <= 100 &&
+             data.email is string && data.email.size() >= 0 && data.email.size() <= 150;
+    }
+
+    function isValidPurchase(data) {
+      return data.keys().hasAll(['bookId', 'orderId']) && data.keys().size() == 2 &&
+             data.bookId is string && data.bookId.size() > 0 && data.bookId.size() <= 128 &&
+             data.orderId is string && data.orderId.size() > 0 && data.orderId.size() <= 128;
+    }
+
+    function isValidBook(data) {
+      return data.keys().hasAll(['title', 'description', 'price', 'coverUrl', 'previewContent']) && data.keys().size() == 5 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
+             data.price is string && data.price.size() > 0 && data.price.size() <= 50 &&
+             data.coverUrl is string && data.coverUrl.size() >= 0 && data.coverUrl.size() <= 1000 &&
+             data.previewContent is string && data.previewContent.size() >= 0 && data.previewContent.size() <= 10000;
+    }
+
+    function isValidBookContent(data) {
+      return data.keys().hasAll(['downloadUrl']) && data.keys().size() == 1 &&
+             data.downloadUrl is string && data.downloadUrl.size() > 0 && data.downloadUrl.size() <= 1000;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'bookId', 'bkashReference', 'status', 'createdAt', 'customerName', 'customerEmail']) &&
+             data.keys().size() == 7 &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.bookId is string && data.bookId.size() > 0 && data.bookId.size() <= 128 &&
+             data.bkashReference is string && data.bkashReference.size() > 0 && data.bkashReference.size() <= 50 &&
+             data.status is string && data.status in ['pending', 'approved', 'rejected'] &&
+             data.createdAt is number &&
+             data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 100 &&
+             data.customerEmail is string && data.customerEmail.size() > 0 && data.customerEmail.size() <= 150;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidId(userId);
+      allow list: if isAdmin();
+      allow create: if (isSignedIn() && request.auth.uid == userId || isAdmin()) && isValidId(userId) && isValidUser(incoming());
+      allow update: if (isSignedIn() && request.auth.uid == userId || isAdmin()) && isValidId(userId) && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name'])
+      ) && incoming().email == existing().email; // prevent email change
+      allow delete: if isAdmin() && isValidId(userId);
+
+      match /purchases/{bookId} {
+        allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidId(userId) && isValidId(bookId);
+        allow list: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidId(userId);
+        allow create: if isAdmin() && isValidId(userId) && isValidId(bookId) && isValidPurchase(incoming());
+        allow update: if false;
+        allow delete: if isAdmin() && isValidId(userId) && isValidId(bookId);
+      }
+    }
+
+    match /books/{bookId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(bookId) && isValidBook(incoming());
+      allow update: if isAdmin() && isValidId(bookId) && isValidBook(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'price', 'coverUrl', 'previewContent'])
+      );
+      allow delete: if isAdmin() && isValidId(bookId);
+
+      match /content/{docId} {
+        // Only readable if admin or the user has a purchase record
+        allow get: if isSignedIn() && isValidId(bookId) && isValidId(docId) && (isAdmin() || exists(/databases/$(database)/documents/users/$(request.auth.uid)/purchases/$(bookId)));
+        allow list: if isSignedIn() && isValidId(bookId) && (isAdmin() || exists(/databases/$(database)/documents/users/$(request.auth.uid)/purchases/$(bookId)));
+        allow create: if isAdmin() && isValidId(bookId) && isValidId(docId) && isValidBookContent(incoming());
+        allow update: if isAdmin() && isValidId(bookId) && isValidId(docId) && isValidBookContent(incoming()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['downloadUrl'])
+        );
+        allow delete: if isAdmin() && isValidId(bookId) && isValidId(docId);
+      }
+    }
+
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && isValidId(orderId) && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.userId == request.auth.uid
+      );
+      allow create: if isValidId(orderId) && isValidOrder(incoming()) && (incoming().userId == 'anonymous' || (isSignedIn() && incoming().userId == request.auth.uid)) && incoming().status == 'pending' && exists(/databases/$(database)/documents/books/$(incoming().bookId));
+      allow update: if isSignedIn() && isValidId(orderId) && (
+        isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status in ['pending', 'approved', 'rejected']
+      );
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+  }
+}

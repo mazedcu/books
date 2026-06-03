@@ -218,7 +218,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   // Create a reset token that expires in 15 minutes
   const resetToken = jwt.sign({ id: user.id, purpose: 'reset' }, JWT_SECRET, { expiresIn: '15m' });
   
-  const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  const resetLink = `${process.env.FRONTEND_URL || 'https://hasanmazedbooks.xyz'}/reset-password?token=${resetToken}`;
   
   const mailOptions = {
     from: process.env.EMAIL_USER || 'mazed.insight@gmail.com',
@@ -425,8 +425,7 @@ app.put('/api/orders/:id/approve', authenticate, requireAdmin, async (req, res) 
     
     if (setupToken) {
       bodyText += `Click below to set your password and access your book:\n`;
-      // Note: Assuming frontend is on port 3000 locally, change in prod
-      const frontendUrl = process.env.VITE_FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://hasanmazedbooks.xyz';
       bodyText += `${frontendUrl}/setup-account?token=${setupToken}\n\n`;
     } else {
       bodyText += `Your payment for the bKash reference ${order.bkashReference} has been approved.\n`;

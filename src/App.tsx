@@ -159,10 +159,7 @@ function Navigation() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex gap-1">
-                <button onClick={() => mockLogin(false)} className="text-[9px] border border-dashed border-gray-200 px-2 py-1 rounded text-gray-300 hover:text-gray-500">Dev</button>
-                <button onClick={() => mockLogin(true)} className="text-[9px] border border-dashed border-gray-200 px-2 py-1 rounded text-gray-300 hover:text-gray-500">Admin</button>
-              </div>
+
               <button onClick={() => { setShowLoginModal(true); setIsSignUp(false); }}
                       className="text-[12px] font-semibold text-white px-5 py-2 rounded-lg transition-all hover:shadow-md"
                       style={{ background: 'linear-gradient(135deg, #0B1426, #1C2D4F)' }}>

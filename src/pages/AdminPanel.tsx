@@ -134,7 +134,12 @@ export default function AdminPanel() {
 
   const handleEditClick = (book: Book) => {
     setIsEditing(true);
-    setNewBook({ id: book.id, title: book.title, description: book.description || '', price: book.price.toString() });
+    setNewBook({ 
+      id: String(book.id || ''), 
+      title: String(book.title || ''), 
+      description: String(book.description || ''), 
+      price: String(book.price || '') 
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

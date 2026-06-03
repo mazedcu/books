@@ -357,6 +357,85 @@ app.post('/api/books', authenticate, requireAdmin, upload.fields([
   }
 });
 
+app.put('/api/books/:id', authenticate, requireAdmin, upload.fields([
+  { name: 'coverImage', maxCount: 1 },
+  { name: 'previewPage1', maxCount: 1 },
+  { name: 'previewPage2', maxCount: 1 },
+  { name: 'pdfFile', maxCount: 1 }
+]), async (req, res) => {
+  const bookId = req.params.id;
+  const { title, description, price, previewContent } = req.body;
+  const files = req.files || {};
+  
+  try {
+    const existingBook = await db.get('SELECT * FROM books WHERE id = ?', [bookId]);
+    if (!existingBook) return res.status(404).json({ error: 'Book not found' });
+
+    let finalCoverUrl = existingBook.coverUrl;
+    if (files['coverImage'] && files['coverImage'].length > 0) {
+      finalCoverUrl = '/uploads/' + files['coverImage'][0].filename;
+      if (existingBook.coverUrl) {
+         fs.unlink(path.join(__dirname, existingBook.coverUrl), (err) => { if (err) console.error("Error deleting old cover:", err); });
+      }
+    }
+    
+    let previewPage1Url = existingBook.previewPage1Url;
+    if (files['previewPage1'] && files['previewPage1'].length > 0) {
+      previewPage1Url = '/uploads/' + files['previewPage1'][0].filename;
+      if (existingBook.previewPage1Url) {
+         fs.unlink(path.join(__dirname, existingBook.previewPage1Url), (err) => { if (err) console.error("Error deleting old preview 1:", err); });
+      }
+    }
+    
+    let previewPage2Url = existingBook.previewPage2Url;
+    if (files['previewPage2'] && files['previewPage2'].length > 0) {
+      previewPage2Url = '/uploads/' + files['previewPage2'][0].filename;
+      if (existingBook.previewPage2Url) {
+         fs.unlink(path.join(__dirname, existingBook.previewPage2Url), (err) => { if (err) console.error("Error deleting old preview 2:", err); });
+      }
+    }
+    
+    let finalDownloadUrl = existingBook.downloadUrl;
+    if (files['pdfFile'] && files['pdfFile'].length > 0) {
+      finalDownloadUrl = '/uploads/' + files['pdfFile'][0].filename;
+      if (existingBook.downloadUrl) {
+         fs.unlink(path.join(__dirname, existingBook.downloadUrl), (err) => { if (err) console.error("Error deleting old pdf:", err); });
+      }
+    }
+
+    await db.run(
+      'UPDATE books SET title = ?, description = ?, price = ?, coverUrl = ?, previewContent = ?, downloadUrl = ?, previewPage1Url = ?, previewPage2Url = ? WHERE id = ?',
+      [title, description, price, finalCoverUrl, previewContent || '', finalDownloadUrl, previewPage1Url, previewPage2Url, bookId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/books/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const existingBook = await db.get('SELECT * FROM books WHERE id = ?', [req.params.id]);
+    if (!existingBook) return res.status(404).json({ error: 'Book not found' });
+    
+    // Delete files physically
+    const filesToDelete = [existingBook.coverUrl, existingBook.previewPage1Url, existingBook.previewPage2Url, existingBook.downloadUrl];
+    for (const fileUrl of filesToDelete) {
+      if (fileUrl && fileUrl.startsWith('/uploads/')) {
+        fs.unlink(path.join(__dirname, fileUrl), (err) => {
+          if (err && err.code !== 'ENOENT') console.error("Error deleting file:", err);
+        });
+      }
+    }
+
+    await db.run('DELETE FROM books WHERE id = ?', [req.params.id]);
+    // Optionally delete from purchases and orders related to this book, or leave them for history.
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- ORDERS ROUTES ---
 app.post('/api/orders', async (req, res) => {
   const { id, bookId, bkashReference, customerName, customerEmail } = req.body;

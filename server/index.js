@@ -205,6 +205,56 @@ app.post('/api/auth/setup-account', async (req, res) => {
   }
 });
 
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+  if (!user) {
+    // Return success even if user not found to prevent email enumeration
+    return res.json({ success: true, message: 'If an account exists, a reset link has been sent.' });
+  }
+
+  // Create a reset token that expires in 15 minutes
+  const resetToken = jwt.sign({ id: user.id, purpose: 'reset' }, JWT_SECRET, { expiresIn: '15m' });
+  
+  const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  
+  const mailOptions = {
+    from: process.env.EMAIL_USER || 'mazed.insight@gmail.com',
+    to: user.email,
+    subject: 'Password Reset - Mazed Books',
+    text: `Hello ${user.name},\n\nYou requested a password reset. Please click the link below to set a new password:\n\n${resetLink}\n\nThis link will expire in 15 minutes.\n\nThank you,\nMazed Educational Publications`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'If an account exists, a reset link has been sent.' });
+  } catch (error) {
+    console.error("Email send error:", error);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.purpose !== 'reset') return res.status(400).json({ error: 'Invalid token type' });
+
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [decoded.id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    await db.run('UPDATE users SET password = ? WHERE id = ?', [password, user.id]);
+
+    res.json({ success: true, message: 'Password has been reset successfully' });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid or expired reset token' });
+  }
+});
+
 app.post('/api/auth/google', async (req, res) => {
   const { credential } = req.body;
   try {

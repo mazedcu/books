@@ -6,6 +6,7 @@ import BookDetail from './pages/BookDetail';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import SetupAccount from './pages/SetupAccount';
+import ResetPassword from './pages/ResetPassword';
 
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
@@ -93,9 +94,11 @@ function Navigation() {
   const location = useLocation();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({ name: '', email: '', password: '' });
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
 
   (window as any).mockLogin = mockLogin;
 
@@ -108,7 +111,30 @@ function Navigation() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    setAuthMessage('');
     setAuthLoading(true);
+    
+    if (isForgotPassword) {
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: loginForm.email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setAuthMessage(data.message || 'Check your email for a reset link.');
+        } else {
+          setAuthError(data.error || 'Request failed');
+        }
+      } catch (err: any) {
+        setAuthError(err.message);
+      } finally {
+        setAuthLoading(false);
+      }
+      return;
+    }
+
     try {
       if (isSignUp) {
         await signUpWithEmail(loginForm.email, loginForm.password, loginForm.name || 'Reader');
@@ -160,7 +186,7 @@ function Navigation() {
           ) : (
             <div className="flex items-center gap-2">
 
-              <button onClick={() => { setShowLoginModal(true); setIsSignUp(false); }}
+              <button onClick={() => { setShowLoginModal(true); setIsSignUp(false); setIsForgotPassword(false); setAuthMessage(''); }}
                       className="text-[12px] font-semibold text-white px-5 py-2 rounded-lg transition-all hover:shadow-md"
                       style={{ background: 'linear-gradient(135deg, #0B1426, #1C2D4F)' }}>
                 Sign In
@@ -179,10 +205,10 @@ function Navigation() {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xl font-bold text-[#0F1A2E]" style={{ fontFamily: "'Baloo 2', sans-serif" }}>
-                  {isSignUp ? 'Create Account' : 'Welcome Back'}
+                  {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create Account' : 'Welcome Back'}
                 </h3>
                 <p className="text-xs text-[#9CA3AF] mt-1">
-                  {isSignUp ? 'Set up your reader account' : 'Sign in to access your books'}
+                  {isForgotPassword ? 'Enter your email to receive a reset link' : isSignUp ? 'Set up your reader account' : 'Sign in to access your books'}
                 </p>
               </div>
               <button onClick={() => setShowLoginModal(false)}
@@ -191,6 +217,9 @@ function Navigation() {
 
             {authError && (
               <div className="mb-4 p-3 rounded-lg text-xs font-medium text-red-700 bg-red-50 border border-red-100">{authError}</div>
+            )}
+            {authMessage && (
+              <div className="mb-4 p-3 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100">{authMessage}</div>
             )}
 
             <form onSubmit={handleEmailAuth} className="space-y-3 mb-4">
@@ -208,22 +237,37 @@ function Navigation() {
                        onChange={e => setLoginForm({...loginForm, email: e.target.value})}
                        className="input-field" placeholder="you@example.com" />
               </div>
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1 text-[#6B7280]">Password</label>
-                <input type="password" required value={loginForm.password}
-                       onChange={e => setLoginForm({...loginForm, password: e.target.value})}
-                       className="input-field" placeholder="Enter password" />
-              </div>
+              {(!isForgotPassword) && (
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">Password</label>
+                    {!isSignUp && (
+                      <button type="button" onClick={() => { setIsForgotPassword(true); setAuthError(''); setAuthMessage(''); }} 
+                              className="text-[10px] font-medium text-[#00D4AA] hover:text-[#0B1426] transition-colors">
+                        Forgot?
+                      </button>
+                    )}
+                  </div>
+                  <input type="password" required={!isForgotPassword} value={loginForm.password}
+                         onChange={e => setLoginForm({...loginForm, password: e.target.value})}
+                         className="input-field" placeholder="Enter password" />
+                </div>
+              )}
               <button type="submit" disabled={authLoading}
-                      className="w-full py-3 text-sm font-semibold text-white rounded-lg transition-all disabled:opacity-50"
+                      className="w-full py-3 text-sm font-semibold text-white rounded-lg transition-all disabled:opacity-50 mt-2"
                       style={{ background: '#0F1A2E' }}>
-                {authLoading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
+                {authLoading ? 'Please wait...' : isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Sign In'}
               </button>
             </form>
 
-            <button onClick={() => { setIsSignUp(!isSignUp); setAuthError(''); }}
+            <button onClick={() => { 
+                      if (isForgotPassword) { setIsForgotPassword(false); setIsSignUp(false); }
+                      else setIsSignUp(!isSignUp); 
+                      setAuthError(''); 
+                      setAuthMessage('');
+                    }}
                     className="w-full text-xs font-medium text-[#9CA3AF] hover:text-[#0F1A2E] transition-colors text-center py-2">
-              {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Create one'}
+              {isForgotPassword ? 'Back to Sign In' : isSignUp ? 'Already have an account? Sign In' : 'Need an account? Create one'}
             </button>
 
 
@@ -257,8 +301,9 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/book/:id" element={<BookDetail />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/setup-account" element={<SetupAccount />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/admin" element={<AdminPanel />} />
               </Routes>
             </div>
             <Footer />

@@ -364,6 +364,24 @@ app.post('/api/orders', async (req, res) => {
   let user = await db.get('SELECT id FROM users WHERE email = ?', [customerEmail]);
   const userId = user ? user.id : 0; 
   
+  // Check for duplicate pending orders
+  const existingOrder = await db.get('SELECT id, status FROM orders WHERE customerEmail = ? AND bookId = ?', [customerEmail, bookId]);
+  if (existingOrder) {
+    if (existingOrder.status === 'pending') {
+      return res.status(400).json({ error: 'You already have a pending order for this book. Please wait for approval.' });
+    } else {
+      return res.status(400).json({ error: 'You have already purchased this book. Please log in to access it.' });
+    }
+  }
+
+  // Check if they already have it in purchases
+  if (userId !== 0) {
+    const existingPurchase = await db.get('SELECT * FROM purchases WHERE userId = ? AND bookId = ?', [userId, bookId]);
+    if (existingPurchase) {
+       return res.status(400).json({ error: 'You have already purchased this book. Please log in to access it.' });
+    }
+  }
+  
   try {
     await db.run(
       'INSERT INTO orders (id, userId, bookId, bkashReference, status, createdAt, customerName, customerEmail) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',

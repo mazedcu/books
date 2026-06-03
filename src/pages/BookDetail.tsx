@@ -54,11 +54,14 @@ export default function BookDetail() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: orderId, bookId: book.id, bkashReference: checkoutForm.bkashReference, customerName: checkoutForm.name, customerEmail: checkoutForm.email })
       });
-      if (!res.ok) throw new Error('Order submission failed');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Order submission failed');
+      }
       setCheckoutMessage('success');
       setCheckoutForm({ ...checkoutForm, bkashReference: '' });
-    } catch {
-      alert("Error submitting order. Please try again.");
+    } catch (err: any) {
+      alert(err.message || "Error submitting order. Please try again.");
     } finally {
       setSubmitting(false);
     }

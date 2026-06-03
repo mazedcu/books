@@ -394,7 +394,12 @@ app.post('/api/orders', async (req, res) => {
 });
 
 app.get('/api/orders', authenticate, requireAdmin, async (req, res) => {
-  const orders = await db.all('SELECT * FROM orders WHERE status = "pending"');
+  const orders = await db.all(`
+    SELECT orders.*, books.title as bookTitle 
+    FROM orders 
+    LEFT JOIN books ON orders.bookId = books.id 
+    WHERE orders.status = "pending"
+  `);
   res.json(orders);
 });
 

@@ -179,6 +179,7 @@ export default function AdminPanel() {
                  <div>
                    <p className="text-[10px] uppercase tracking-widest font-bold text-[#8C857D] mb-1">Order #{order.id.slice(-8)}</p>
                    <p className="font-serif text-xl italic mb-1">{order.customerName}</p>
+                   <p className="text-sm font-semibold text-[#0B1426] mb-1">Book: {order.bookTitle || order.bookId}</p>
                    <p className="text-sm text-[#4A4540]">{order.customerEmail}</p>
                    <p className="text-sm mt-2"><strong className="text-[#1A1A1A]">bKash Ref:</strong> <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">{order.bkashReference}</span></p>
                  </div>

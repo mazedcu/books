@@ -6,7 +6,7 @@ import BookDetail from './pages/BookDetail';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import SetupAccount from './pages/SetupAccount';
-import { GoogleLogin } from '@react-oauth/google';
+
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function Sidebar() {
@@ -226,22 +226,7 @@ function Navigation() {
               {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Create one'}
             </button>
 
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100" /></div>
-              <div className="relative flex justify-center">
-                <span className="px-3 text-[10px] text-[#9CA3AF] font-medium bg-white uppercase tracking-wider">or</span>
-              </div>
-            </div>
 
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={async (cr) => {
-                  if (cr.credential) { await signInWithGoogleToken(cr.credential); setShowLoginModal(false); }
-                }}
-                onError={() => setAuthError('Google Sign-In failed.')}
-                useOneTap
-              />
-            </div>
           </div>
         </div>
       )}

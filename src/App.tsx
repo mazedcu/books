@@ -62,12 +62,11 @@ function Sidebar() {
 
         <div className="mt-6 space-y-2.5">
           <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: '#4A6FA5' }}>Contact</p>
-          <a href="mailto:mazedbooks@gmail.com"
+          <a href="mailto:mazedcu@gmail.com"
              className="block text-[13px] transition-colors hover:text-[#00D4AA]"
              style={{ color: 'rgba(255,255,255,0.5)' }}>
-            mazedbooks@gmail.com
+            mazedcu@gmail.com
           </a>
-          <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.3)' }}>+880 17XX-XXXXXX</p>
         </div>
 
         <div className="flex gap-2 mt-4">

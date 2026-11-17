@@ -1,4 +1,4 @@
-"""Collect all 12 storybooks (3 languages each) into one data file for the app.
+"""Collect all storybooks (3 languages each) into one data file for the app.
 
 Pictures and shared SVG drawings come from the English page of each story (they are the
 same in every edition). Each edition contributes its own text. Arabic editions also give
@@ -23,6 +23,11 @@ STORIES = [
     ("coat", "coat", "world", None),
     ("grandpa", "grandpa", "world", None),
     ("horse", "horse", "world", None),
+    ("league", "league", "sherlock", None),
+    ("jewel", "jewel", "sherlock", None),
+    ("students", "students", "sherlock", None),
+    ("crown", "crown", "sherlock", None),
+    ("riddle", "riddle", "sherlock", None),
 ]
 
 DEFS_RE = re.compile(r'<svg width="0" height="0" style="position:absolute" aria-hidden="true">\s*<defs>(.*?)</defs>\s*</svg>', re.S)

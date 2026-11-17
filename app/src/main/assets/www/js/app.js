@@ -39,13 +39,13 @@
 
   /* ---------- words used in the app itself ---------- */
   var UI = {
-    en: { app: "Storybooks", sub: "Stories to read and listen to", brave: "Stories of the Brave", world: "Stories from Around the World",
+    en: { app: "Storybooks", sub: "Stories to read and listen to", brave: "Stories of the Brave", world: "Stories from Around the World", sherlock: "Sherlock Holmes",
           foot: "Tap a book to open it. Swipe the page corner, or use the arrows, to turn pages. Press ▶ to listen.",
           pages: function (n) { return n + " pages"; } },
-    ar: { app: "قِصَصِي", sub: "قِصَصٌ لِلْقِرَاءَةِ وَالِاسْتِمَاعِ", brave: "قِصَصُ الشُّجْعَانِ", world: "حِكَايَاتٌ مِنْ حَوْلِ الْعَالَمِ",
+    ar: { app: "قِصَصِي", sub: "قِصَصٌ لِلْقِرَاءَةِ وَالِاسْتِمَاعِ", brave: "قِصَصُ الشُّجْعَانِ", world: "حِكَايَاتٌ مِنْ حَوْلِ الْعَالَمِ", sherlock: "شِرْلُوك هُولْمِز",
           foot: "اضْغَطْ عَلَى كِتَابٍ لِتَفْتَحَهُ، وَاسْحَبْ طَرَفَ الصَّفْحَةِ لِتَقْلِبَهَا، وَاضْغَطْ ▶ لِتَسْمَعَ الْقِصَّةَ.",
           pages: function (n) { return digits(n, "ar") + " صَفْحَةً · تَمَارِينُ"; } },
-    bn: { app: "গল্পের বই", sub: "পড়ো আর শোনো", brave: "সাহসীদের গল্প", world: "বিশ্বের নানা দেশের গল্প",
+    bn: { app: "গল্পের বই", sub: "পড়ো আর শোনো", brave: "সাহসীদের গল্প", world: "বিশ্বের নানা দেশের গল্প", sherlock: "শার্লক হোমস",
           foot: "বই খুলতে ছুঁয়ে দাও। পাতার কোণা টেনে বা তীর চিহ্নে পাতা উল্টাও। শুনতে ▶ চাপো।",
           pages: function (n) { return digits(n, "bn") + " পাতা"; } }
   };
@@ -91,13 +91,14 @@
     title.replaceChildren(document.createTextNode(t.app), el("small", null, t.sub));
     $("shelf-brave").textContent = t.brave;
     $("shelf-world").textContent = t.world;
+    $("shelf-sherlock").textContent = t.sherlock;
     $("lib-foot").textContent = t.foot;
     var langBtns = document.querySelectorAll(".langs button");
     for (var b = 0; b < langBtns.length; b++) {
       langBtns[b].setAttribute("aria-pressed", langBtns[b].getAttribute("data-lang") === lang ? "true" : "false");
     }
-    var grids = { brave: $("grid-brave"), world: $("grid-world") };
-    grids.brave.replaceChildren(); grids.world.replaceChildren();
+    var grids = { brave: $("grid-brave"), world: $("grid-world"), sherlock: $("grid-sherlock") };
+    grids.brave.replaceChildren(); grids.world.replaceChildren(); grids.sherlock.replaceChildren();
     STORIES.forEach(function (s, i) {
       var L = s.langs[lang];
       var card = el("button", "card");

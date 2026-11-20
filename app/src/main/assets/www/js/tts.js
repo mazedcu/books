@@ -16,7 +16,10 @@
   var LANG_TAGS = { en: "en-US", ar: "ar-SA", bn: "bn-BD" };
   var CLOUD_LANG = { en: "en-GB", ar: "ar-XA", bn: "bn-IN" };
 
-  var settings = { engine: "device", apiKey: "", rate: 0.9, voices: { en: "", ar: "", bn: "" } };
+  var settings = { engine: "device", apiKey: "", rate: 0.9, voices: { en: "", ar: "", bn: "" }, deviceVoices: { en: "", ar: "", bn: "" } };
+  /* Google's most natural Cloud voices (Chirp 3 HD), used when no voice name is given. */
+  var CLOUD_DEFAULT = { en: "en-GB-Chirp3-HD-Kore", ar: "ar-XA-Chirp3-HD-Kore", bn: "bn-IN-Chirp3-HD-Kore" };
+  var cloudDefaultFailed = {};
   var queue = [];
   var current = null;
   var runId = 0;
@@ -117,6 +120,7 @@
   function cloudVoiceFor(lang) {
     var v = { languageCode: CLOUD_LANG[lang] || "en-GB", ssmlGender: "FEMALE" };
     var name = (settings.voices && settings.voices[lang]) || "";
+    if (!name && !cloudDefaultFailed[lang]) { name = CLOUD_DEFAULT[lang] || ""; }
     if (name) { v.name = name; v.languageCode = name.split("-").slice(0, 2).join("-"); delete v.ssmlGender; }
     return v;
   }
@@ -137,6 +141,11 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       }).then(function (r) {
+        if (!r.ok && r.status === 400 && voice.name === CLOUD_DEFAULT[seg.lang]) {
+          /* the newest voices are not available for this key: use a standard Google voice */
+          cloudDefaultFailed[seg.lang] = true;
+          throw { retry: true };
+        }
         if (!r.ok) { throw new Error("Cloud TTS error " + r.status); }
         return r.json();
       }).then(function (j) {
@@ -144,6 +153,7 @@
         cachePut(key, j.audioContent);
         playB64(j.audioContent, done);
       }).catch(function (err) {
+        if (err && err.retry) { speakCloud(seg, done); return; }
         if (window.console) { console.warn(err); }
         TTS.lastError = String(err && err.message ? err.message : err);
         speakDevice(seg, done); /* fall back to the phone voice */
@@ -185,6 +195,22 @@
     lastError: "",
     configure: function (s) {
       for (var k in s) { if (Object.prototype.hasOwnProperty.call(s, k)) { settings[k] = s[k]; } }
+      if (hasBridge() && typeof window.AndroidTTS.setPreferredVoice === "function") {
+        ["en", "ar", "bn"].forEach(function (l) {
+          try { window.AndroidTTS.setPreferredVoice(LANG_TAGS[l], (settings.deviceVoices && settings.deviceVoices[l]) || ""); } catch (e) { /* ignore */ }
+        });
+      }
+    },
+    /* The phone's voices for a language: [{name, online, quality, country}], best first. */
+    deviceVoiceList: function (lang) {
+      if (!hasBridge() || typeof window.AndroidTTS.listVoices !== "function") { return []; }
+      var list = [];
+      try { list = JSON.parse(window.AndroidTTS.listVoices(LANG_TAGS[lang] || "en-US")) || []; } catch (e) { list = []; }
+      list.sort(function (a, b) {
+        var sa = (a.quality || 0) + (a.online ? 150 : 0), sb = (b.quality || 0) + (b.online ? 150 : 0);
+        return sb - sa || String(a.name).localeCompare(String(b.name));
+      });
+      return list;
     },
     settings: function () { return settings; },
     play: function (segments, onEnd) {

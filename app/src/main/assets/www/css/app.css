@@ -227,6 +227,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--gold-soft);
 .sheet label.row input[type="radio"], .sheet label.row input[type="checkbox"] { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--lapis); }
 .sheet .help { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.45; margin: 4px 0 0 30px; }
 .sheet input[type="text"], .sheet input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--paper-edge); background: #fbf3df; color: var(--ink); font-size: 0.95rem; margin-top: 6px; }
+.sheet .voices { margin: 8px 0 4px 30px; }
+.sheet .vrow { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 0.9rem; }
+.sheet .vrow span { flex: 0 0 104px; color: var(--ink-soft); }
+.sheet .vrow select { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--paper-edge); background: #fbf3df; color: var(--ink); font-size: 0.9rem; }
 .sheet input[type="range"] { width: 100%; accent-color: var(--lapis); }
 .sheet .tests { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .sheet .status { font-size: 0.8rem; color: var(--ink-soft); margin-top: 6px; }

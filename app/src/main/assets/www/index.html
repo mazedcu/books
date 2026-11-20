@@ -79,13 +79,18 @@
     <h2><span>Read-aloud settings</span><button class="icon-btn" id="s-close" aria-label="Close" style="color:var(--lapis)"><svg class="ic"><use href="#i-close"/></svg></button></h2>
     <div class="grp">
       <label class="row"><input type="radio" name="engine" id="s-eng-device" value="device"> <span><b>Phone voice (Google Text-to-Speech)</b></span></label>
-      <p class="help">Free and works offline. Uses the Google Speech Services engine on the phone. For the best Arabic and Bangla voices, open Android Settings → Text-to-speech, choose Google, and download the Arabic and Bangla voice data.</p>
+      <p class="help">Free. The app picks the most natural Google voice for each language, and uses Google's better online voices when there is internet. For good offline voices, open Android Settings → Text-to-speech, choose Google, and download the Arabic and Bangla voice data.</p>
+      <div class="voices" id="s-dev-voices" hidden>
+        <label class="vrow"><span>English voice</span><select id="s-dv-en"></select></label>
+        <label class="vrow"><span>Arabic voice</span><select id="s-dv-ar"></select></label>
+        <label class="vrow"><span>Bangla voice</span><select id="s-dv-bn"></select></label>
+      </div>
       <label class="row"><input type="radio" name="engine" id="s-eng-cloud" value="cloud"> <span><b>Google Cloud Text-to-Speech API</b></span></label>
-      <p class="help">More natural voices. Needs internet and your own API key from Google Cloud (billing applies after the free monthly quota). Each sentence is downloaded once and then kept on the phone.</p>
+      <p class="help">The most natural, human-sounding voices (Google Chirp 3 HD). Needs internet and your own API key from Google Cloud (billing applies after the free monthly quota). Each sentence is downloaded once and then kept on the phone.</p>
       <input type="password" id="s-key" placeholder="Paste your Google Cloud API key" autocomplete="off" spellcheck="false">
-      <input type="text" id="s-voice-ar" placeholder="Optional Arabic voice name, e.g. ar-XA-Wavenet-A" autocomplete="off" spellcheck="false">
-      <input type="text" id="s-voice-bn" placeholder="Optional Bangla voice name, e.g. bn-IN-Wavenet-A" autocomplete="off" spellcheck="false">
-      <input type="text" id="s-voice-en" placeholder="Optional English voice name, e.g. en-GB-Wavenet-A" autocomplete="off" spellcheck="false">
+      <input type="text" id="s-voice-ar" placeholder="Arabic voice (blank = ar-XA-Chirp3-HD-Kore)" autocomplete="off" spellcheck="false">
+      <input type="text" id="s-voice-bn" placeholder="Bangla voice (blank = bn-IN-Chirp3-HD-Kore)" autocomplete="off" spellcheck="false">
+      <input type="text" id="s-voice-en" placeholder="English voice (blank = en-GB-Chirp3-HD-Kore)" autocomplete="off" spellcheck="false">
     </div>
     <div class="grp">
       <label for="s-rate"><b>Reading speed</b> <span id="s-rate-val"></span></label>

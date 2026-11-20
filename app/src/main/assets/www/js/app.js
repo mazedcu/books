@@ -57,10 +57,11 @@
   };
 
   /* ---------- settings ---------- */
-  var prefs = load("prefs", { lang: "en", engine: "device", apiKey: "", rate: 0.9, auto: true, voices: { en: "", ar: "", bn: "" } });
+  var prefs = load("prefs", { lang: "en", engine: "device", apiKey: "", rate: 0.9, auto: true, voices: { en: "", ar: "", bn: "" }, deviceVoices: { en: "", ar: "", bn: "" } });
   if (!prefs.voices) { prefs.voices = { en: "", ar: "", bn: "" }; }
+  if (!prefs.deviceVoices) { prefs.deviceVoices = { en: "", ar: "", bn: "" }; }
   function applyPrefs() {
-    TTS.configure({ engine: prefs.engine, apiKey: prefs.apiKey, rate: prefs.rate, voices: prefs.voices });
+    TTS.configure({ engine: prefs.engine, apiKey: prefs.apiKey, rate: prefs.rate, voices: prefs.voices, deviceVoices: prefs.deviceVoices });
     store("prefs", prefs);
   }
   applyPrefs();
@@ -532,6 +533,7 @@
     $("s-rate").value = prefs.rate;
     $("s-rate-val").textContent = "× " + Number(prefs.rate).toFixed(2);
     $("s-auto").checked = !!prefs.auto;
+    fillDeviceVoices();
     showStatus();
     $("settings").hidden = false;
   }
@@ -542,8 +544,34 @@
     prefs.voices = { ar: $("s-voice-ar").value.trim(), bn: $("s-voice-bn").value.trim(), en: $("s-voice-en").value.trim() };
     prefs.rate = parseFloat($("s-rate").value) || 0.9;
     prefs.auto = $("s-auto").checked;
+    if (!$("s-dev-voices").hidden) {
+      prefs.deviceVoices = { en: $("s-dv-en").value, ar: $("s-dv-ar").value, bn: $("s-dv-bn").value };
+    }
     applyPrefs();
     $("s-rate-val").textContent = "× " + prefs.rate.toFixed(2);
+  }
+  /* the phone's voices, best first; "" lets the app choose automatically */
+  function fillDeviceVoices() {
+    var any = false;
+    ["en", "ar", "bn"].forEach(function (l) {
+      var sel = $("s-dv-" + l);
+      var list = TTS.deviceVoiceList(l);
+      if (list.length) { any = true; }
+      var opts = [el("option", null, "Best available (automatic)")];
+      opts[0].value = "";
+      var seen = {};
+      list.forEach(function (v, i) {
+        if (seen[v.name]) { return; }
+        seen[v.name] = true;
+        var label = "Voice " + (i + 1) + (v.country ? " · " + v.country : "") + (v.online ? " · online, best quality" : " · offline");
+        var o = el("option", null, label);
+        o.value = v.name;
+        opts.push(o);
+      });
+      sel.replaceChildren.apply(sel, opts);
+      sel.value = seen[prefs.deviceVoices[l]] ? prefs.deviceVoices[l] : "";
+    });
+    $("s-dev-voices").hidden = !any;
   }
   function showStatus(extra) {
     var e = TTS.engineLabel();
@@ -563,7 +591,7 @@
   $("s-close").addEventListener("click", closeSettings);
   $("s-done").addEventListener("click", closeSettings);
   $("settings").addEventListener("click", function (e) { if (e.target === this) { closeSettings(); } });
-  ["s-eng-device", "s-eng-cloud", "s-key", "s-voice-ar", "s-voice-bn", "s-voice-en", "s-rate", "s-auto"].forEach(function (id) {
+  ["s-eng-device", "s-eng-cloud", "s-key", "s-voice-ar", "s-voice-bn", "s-voice-en", "s-dv-en", "s-dv-ar", "s-dv-bn", "s-rate", "s-auto"].forEach(function (id) {
     $(id).addEventListener("change", function () { saveSettings(); showStatus(); });
     $(id).addEventListener("input", function () { if (id === "s-rate") { $("s-rate-val").textContent = "× " + Number(this.value).toFixed(2); } });
   });

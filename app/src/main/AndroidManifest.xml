@@ -3,6 +3,7 @@
 
     <!-- Only needed for the optional Google Cloud Text-to-Speech voices -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Android 11+ needs this to find the phone's text-to-speech engines -->
     <queries>
